@@ -1,5 +1,6 @@
 import os
 import shutil
+from subprocess import run
 
 
 class EpsFile:
@@ -51,20 +52,26 @@ class Groupper:
 
 class ZipperCreator:
 
+    zipper_name = 'zipper.bat'
+
     def __init__(self, settings_file_name = 'settings.txt'):
         self.settings_file_name = settings_file_name
 
     def get_path_to_7z(self):
         # читаем путь из файла настроек
-        with open(self.settings_file_name) as f:
-            path_to_7z = f.read()
-            return path_to_7z
+        try:
+            with open(self.settings_file_name) as f:
+                path_to_7z = f.read()
+                return path_to_7z
+        except FileNotFoundError:
+            # то возвращаем путь по умолчанию
+            return 'c:\\Program Files\\7-Zip\\7z.exe'
 
     def create(self):
         path_to_7z = self.get_path_to_7z()
         # создаем файл для zip архива если его нету
         # путь до 7zip будем задавать параметром, вдруг его нету
-        with open('zipper.bat', 'w') as f:
+        with open(self.zipper_name, 'w') as f:
             # формируем строку
             run_str = f'for /d %%X in (*) do "{path_to_7z}" a "%%X.zip" "%%X\\"'
             f.write(run_str)
@@ -78,3 +85,6 @@ for f in (JpgFile, EpsFile):
 
 zc = ZipperCreator()
 zc.create()
+
+# попробуем в подпроцессе запустить батник
+run(zc.zipper_name)
